@@ -5,7 +5,6 @@ The project also includes basic AI image classification using the Deep Java Libr
 
 ## Quick Start
 - Configure Lombok on your IDE (IntelliJ)
-- docker-compose up
 - mvn clean install
 - mvn clean package / Build the project from IDE
 - mvn spring-boot:run
@@ -13,7 +12,6 @@ The project also includes basic AI image classification using the Deep Java Libr
 ## Features
 - JWT Authentication: Secure role-based access with JSON Web Tokens
 - PostgreSQL Integration: Efficient database management using PostgreSQL
-- Docker Support: Containerized setup for easy deployment and scaling
 - Maven and Lombok: Simplify project dependencies and reduce boilerplate code
 - Sample Endpoints: User auth and image classification test endpoints
 
@@ -23,7 +21,6 @@ The project also includes basic AI image classification using the Deep Java Libr
 - Maven for dependency management
 - Lombok for reducing boilerplate Java code
 - PostgreSQL as the database
-- Docker for containerization
 - JSON Web Token (JWT) for secure authentication
 - DJL (Deep Java Library) for AI integration
 
@@ -92,10 +89,6 @@ Configures authentication using DaoAuthenticationProvider, which integrates with
 AuthenticationEntryPoint: When configured, this entry point handles unauthorized access attempts by returning an appropriate HTTP error response (e.g., 401 Unauthorized).
 
 ## Development
-
-When starting the application `docker compose up` is called and the app will connect to the contained services.
-[Docker](https://www.docker.com/get-started/) must be available on the current system.
-
 During development it is recommended to use the profile `local`. In IntelliJ `-Dspring.profiles.active=local` can be
 added in the VM options of the Run Configuration after enabling this property in "Modify options". Create your own
 `application-local.yml` file to override settings for development.
@@ -133,7 +126,6 @@ This project is licensed under the MIT License. See the LICENSE file for details
 - Java Spring Boot 3.3.5 boilerplate
 - JWT authentication with Spring Boot
 - Java Spring Boot 3 JWT boilerplate
-- Spring Boot and Docker setup
 - Java AI image classification
 - Spring Boot PostgreSQL integration
 - Java AI and JWT boilerplate project

@@ -6,15 +6,15 @@ spring:
     livereload:
       enabled: true         # Enable live reload (default is true)
   datasource:
-    url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5432/java-spring-boot}
-    username: ${JDBC_DATABASE_USERNAME:postgres}
-    password: ${JDBC_DATABASE_PASSWORD:mypassword}
+    url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5432/app_db}
+    username: ${JDBC_DATABASE_USERNAME:app_user}
+    password: ${JDBC_DATABASE_PASSWORD:password}
     hikari:
       connection-timeout: 30000
       maximum-pool-size: 10
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     open-in-view: false
     properties:
       hibernate:
@@ -23,11 +23,8 @@ spring:
             non_contextual_creation: true
         id:
           new_generator_mappings: true
-  docker:
-    compose:
-      lifecycle-management: start-only
 jwt:
-  secret: skG91dM0QEPyhAkNWRqNwUMwW7in+o2reC6w7O12MSePeu7mSYOcej+R9NMUoFe1upxNmS669+7OQYsMBcZYhQ== # HS512
+  secret: ${JWT_SECRET:changeme-use-a-real-HS512-secret-in-application-local-yml}
   expiration: 3600000  # 1 hour in milliseconds
 error:
   handling:
