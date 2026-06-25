@@ -1,12 +1,15 @@
 package com.abdude.java_spring_boot.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
 public class SignInResponse {
+
     private String token;
 }
