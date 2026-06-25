@@ -20,6 +20,7 @@ public class UserService {
         }
 
         User newUser = new User();
+        newUser.setName(request.getName());
         newUser.setUsername(request.getEmail());
         newUser.setEmail(request.getEmail());
         newUser.setPassword(passwordEncoder.encode(request.getPassword()));
