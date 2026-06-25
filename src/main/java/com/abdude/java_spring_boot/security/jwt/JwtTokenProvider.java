@@ -1,6 +1,5 @@
 package com.abdude.java_spring_boot.security.jwt;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -48,26 +47,11 @@ public class JwtTokenProvider {
             .getSubject();
     }
 
-    public Claims getClaims(String token){
-        return Jwts.parser()
-            .verifyWith((SecretKey)key())
-            .build()
-            .parseSignedClaims(token)
-            .getPayload();
-    }
-
     public boolean validateToken(String token){
         Jwts.parser()
             .verifyWith((SecretKey)key())
             .build()
             .parse(token);
         return true;
-    }
-
-    private Claims extractAllClaims(String token) {
-        return Jwts.parser().verifyWith((SecretKey)key())
-            .build()
-            .parseClaimsJws(token)
-            .getBody();
     }
 }

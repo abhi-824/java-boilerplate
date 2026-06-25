@@ -1,6 +1,5 @@
 package com.abdude.java_spring_boot.security;
 
-import com.abdude.java_spring_boot.entity.Role;
 import com.abdude.java_spring_boot.entity.User;
 import com.abdude.java_spring_boot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,16 +33,5 @@ public class CustomUserDetailsService implements UserDetailsService {
             user.getPassword(),
             authorities
         );
-    }
-
-    public User addUser(User user) {
-        if (userRepository.existsByUsernameOrEmail(user.getUsername(), user.getEmail())) {
-            throw new IllegalArgumentException("User with this username or email already exists");
-        }
-
-        Role userRole = new Role("ROLE_USER");
-        user.addRoles(userRole);
-
-        return userRepository.save(user);
     }
 }
