@@ -30,7 +30,6 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     
     private static final String[] WHITE_LIST_URL = {
-        "/user/**",
         "/auth/**"
     };
     
