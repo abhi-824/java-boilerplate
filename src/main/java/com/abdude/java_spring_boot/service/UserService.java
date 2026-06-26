@@ -30,6 +30,9 @@ public class UserService {
         }
 
         Role userRole = roleRepository.findByName(ROLE_USER);
+        if (userRole == null) {
+            throw new ResourceNotFoundException("Role", "name", ROLE_USER);
+        }
 
         User newUser = new User();
         newUser.setName(request.getName());
