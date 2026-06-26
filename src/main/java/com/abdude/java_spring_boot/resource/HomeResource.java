@@ -1,15 +1,10 @@
 package com.abdude.java_spring_boot.resource;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-
-@RestController
+/**
+ * @deprecated This class is a duplicate of HomeController and will be removed.
+ * Use com.abdude.java_spring_boot.controller.HomeController instead.
+ */
+@Deprecated
 public class HomeResource {
-
-    @GetMapping("/")
-    public String index() {
-        return "\"Hello World!\"";
-    }
-
+    // Removed: duplicate of HomeController
 }

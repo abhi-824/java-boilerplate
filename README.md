@@ -1,137 +1,273 @@
 # Java Spring Boot 3 JWT Authentication Maven Boilerplate
 
-This repository provides a Java Spring Boot 3.3.5 Maven boilerplate, featuring a JWT authentication, role-based access control, PostgreSQL integration and Docker setup.
-The project also includes basic AI image classification using the Deep Java Library (DJL), making it ideal for rapid development of secure, AI-enabled web applications.
+A clean, minimal Spring Boot 3 boilerplate featuring JWT authentication, role-based access control, and PostgreSQL integration. Designed as a solid starting point for secure Java REST APIs.
 
 ## Quick Start
-- Configure Lombok on your IDE (IntelliJ)
-- mvn clean install
-- mvn clean package / Build the project from IDE
-- mvn spring-boot:run
+- Configure Lombok on your IDE (IntelliJ: install Lombok plugin and enable annotation processing)
+- `mvn clean install`
+- `mvn clean package` or build from IDE
+- `mvn spring-boot:run`
+
+After starting, the application is accessible at `localhost:8080`.
+
+---
+
+## Project Structure
+
+```
+src/main/java/com/abdude/java_spring_boot/
+├── config/
+│   ├── DomainConfig.java              # JPA repository config and transaction management
+│   ├── JacksonConfig.java             # Jackson ObjectMapper customization
+│   ├── RoleInitializer.java           # Seeds default roles on startup
+│   └── SecurityConfig.java            # Spring Security filter chain and JWT wiring
+├── controller/
+│   ├── AuthController.java            # POST /auth/signup, POST /auth/signin
+│   ├── HomeController.java            # GET /
+│   └── UserController.java            # GET /user (authenticated)
+├── dto/
+│   ├── SignInRequest.java
+│   ├── SignInResponse.java
+│   ├── SignUpRequest.java
+│   ├── SignUpResponse.java
+│   └── UserResponse.java
+├── entity/
+│   ├── Role.java                      # Implements GrantedAuthority
+│   └── User.java                      # User entity with ManyToMany roles
+├── exception/
+│   ├── DuplicateResourceException.java
+│   ├── GlobalExceptionHandler.java    # Centralized @RestControllerAdvice
+│   └── ResourceNotFoundException.java
+├── repository/
+│   ├── RoleRepository.java
+│   └── UserRepository.java
+├── security/
+│   ├── CustomUserDetailsService.java  # Loads user by username or email
+│   └── jwt/
+│       ├── JwtAuthEntryPoint.java     # Returns 401 on unauthorized access
+│       ├── JwtAuthFilter.java         # Validates JWT on every request
+│       └── JwtTokenProvider.java      # Generates and validates JWT tokens
+└── service/
+    ├── AuthService.java               # Sign-in and token generation logic
+    └── UserService.java               # User registration and lookup logic
+```
+
+---
 
 ## Features
-- JWT Authentication: Secure role-based access with JSON Web Tokens
-- PostgreSQL Integration: Efficient database management using PostgreSQL
-- Maven and Lombok: Simplify project dependencies and reduce boilerplate code
-- Sample Endpoints: User auth and image classification test endpoints
+- **JWT Authentication:** Stateless, token-based auth using HS512-signed JWTs
+- **Role-Based Access Control:** Roles (`ROLE_ADMIN`, `ROLE_MODERATOR`, `ROLE_USER`) seeded at startup
+- **PostgreSQL + Flyway:** Schema managed via versioned SQL migrations
+- **Global Exception Handling:** Consistent error response structure via `GlobalExceptionHandler`
+- **Lombok:** Reduces boilerplate across DTOs and entities
+- **Spring Security:** Custom JWT filter chain, stateless session management
+
+---
 
 ## Tech Stack
 - Java 21
 - Spring Boot 3.3.5
-- Maven for dependency management
-- Lombok for reducing boilerplate Java code
-- PostgreSQL as the database
-- JSON Web Token (JWT) for secure authentication
-- DJL (Deep Java Library) for AI integration
+- Maven
+- Lombok
+- PostgreSQL
+- Flyway (database migrations)
+- JJWT 0.12.3 (JWT generation and validation)
+- Spring Security
+
+---
 
 ## Configuration
-Update application.yml with your database configuration and JWT secret key.
-The key should be HS512.
 
-config/SecurityConfig contains a whitelist for endpoints.
+Update `src/main/resources/application.yml` with your database and JWT settings:
 
-Test the setup by calling the endpoints.
-
-```
+```yaml
 spring:
-    datasource:
-        url: jdbc:postgresql://localhost:5432/your_db_name
-        username: your_db_user
-        password: your_db_password
+  datasource:
+    url: jdbc:postgresql://localhost:5432/your_db_name
+    username: your_db_user
+    password: your_db_password
+
+jwt:
+  secret: your_jwt_secret_key   # Must be HS512-compatible (Base64-encoded)
+  expiration: 3600000            # Token expiry in milliseconds (1 hour)
 ```
 
-```
-jwt:
-    secret: your_jwt_secret_key
-```
+Public (whitelisted) endpoints are configured in `SecurityConfig.java` via the `WHITE_LIST_URL` array.
+
+---
 
 ## API Endpoints
 
-### POST /auth/signup
-```
+### `POST /auth/signup`
+Registers a new user. Returns a JWT token.
+
+**Request body:**
+```json
 {
-    "firstName": "Satoshi",
-    "lastName": "Nakamoto",
-    "email": "satoshi.nakamoto@gmail.com",
-    "password": "mysecretpw"
+  "name": "Satoshi Nakamoto",
+  "email": "satoshi.nakamoto@gmail.com",
+  "password": "mysecretpw"
 }
 ```
 
-### POST /auth/signin
-```
-Include the token you received as Authorization Bearer token
-```
-
-### GET /classify-image
-```
-Add url param imageUrl=https://urltoimg.jpg
+**Response:**
+```json
+{
+  "token": "<jwt_token>"
+}
 ```
 
-## JWT Authentication with Spring Security Overview
-This project uses Spring Security to configure JWT-based authentication, which ensures secure access to protected resources.
+> Note: `username` is automatically set to the user's email address internally.
 
-### SecurityFilterChain
-This configuration customizes Spring Security’s default behavior:
-- Disable Basic Authentication: Disables default form-based login.
-- Disable CSRF: Since this is a stateless REST API, CSRF is disabled.
-- Whitelist Endpoints: Configures public endpoints that do not require authentication, specified in WHITE_LIST_URL (e.g., /auth/** and /user/**).
-- Session Management: Sets the session policy to STATELESS to avoid creating sessions for each request, suitable for JWT.
-- Add JWT Filter: Adds a custom JwtAuthFilter to the filter chain before the UsernamePasswordAuthenticationFilter. This filter intercepts requests, validates the JWT token, and sets the user authentication context if valid.
+---
 
-### JwtAuthFilter
-This filter intercepts each request to:
-- Extract the JWT from the request headers.
-- Validate the token and, if valid, retrieve user details.
-- Set the Authentication object in the security context, enabling access to authenticated endpoints. 
+### `POST /auth/signin`
+Authenticates a user. Returns a JWT token.
 
-### AuthenticationProvider
-Configures authentication using DaoAuthenticationProvider, which integrates with UserDetailsService for loading user information and uses BCrypt for password encoding.
-AuthenticationEntryPoint: When configured, this entry point handles unauthorized access attempts by returning an appropriate HTTP error response (e.g., 401 Unauthorized).
+**Request body:**
+```json
+{
+  "email": "satoshi.nakamoto@gmail.com",
+  "password": "mysecretpw"
+}
+```
+
+**Response:**
+```json
+{
+  "token": "<jwt_token>"
+}
+```
+
+---
+
+### `GET /user`
+Returns the authenticated user's profile. Requires a valid JWT.
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "name": "Satoshi Nakamoto",
+  "username": "satoshi.nakamoto@gmail.com",
+  "email": "satoshi.nakamoto@gmail.com"
+}
+```
+
+---
+
+### `GET /`
+Public index endpoint. Returns `"Hello World!"`.
+
+---
+
+## JWT Authentication Flow
+
+1. **Signup** — `POST /auth/signup` → `UserService.registerUser()` BCrypt-encodes the password, assigns `ROLE_USER`, saves the user, then `AuthService.generateTokenForEmail()` returns a JWT immediately.
+2. **Signin** — `POST /auth/signin` → `AuthService.authUser()` uses Spring's `AuthenticationManager` to validate credentials, then `JwtTokenProvider.generateToken()` returns a signed JWT.
+3. **Authenticated Requests** — `JwtAuthFilter` intercepts every request, extracts the `Bearer` token from the `Authorization` header, validates it via `JwtTokenProvider`, loads the user via `CustomUserDetailsService`, and sets the `Authentication` in the `SecurityContext`.
+4. **Unauthorized Access** — `JwtAuthEntryPoint` returns `401 Unauthorized`.
+
+---
+
+## Security Configuration
+
+`SecurityConfig` configures:
+- **Disabled:** HTTP Basic auth, CSRF (stateless REST API)
+- **Session Policy:** `STATELESS`
+- **Whitelisted endpoints:** `/auth/**` (defined in `WHITE_LIST_URL`)
+- **Authentication Provider:** `DaoAuthenticationProvider` with `CustomUserDetailsService` and `BCryptPasswordEncoder`
+- **JWT Filter:** `JwtAuthFilter` runs before `UsernamePasswordAuthenticationFilter`
+
+To whitelist additional endpoints, add them to `WHITE_LIST_URL` in `SecurityConfig.java`.
+
+---
+
+## Database
+
+Schema is managed by Flyway. Migrations live in `src/main/resources/db/migration/`.
+
+**`V1__init.sql`** creates:
+- `users` table
+- `roles` table
+- `users_roles` join table (ManyToMany)
+
+Roles (`ROLE_ADMIN`, `ROLE_MODERATOR`, `ROLE_USER`) are seeded at startup by `RoleInitializer` if they do not already exist.
+
+---
+
+## Exception Handling
+
+`GlobalExceptionHandler` (`@RestControllerAdvice`) handles:
+
+| Exception | HTTP Status |
+|---|---|
+| `ResourceNotFoundException` | `404 Not Found` |
+| `DuplicateResourceException` | `409 Conflict` |
+| `MethodArgumentNotValidException` | `400 Bad Request` |
+| `BadCredentialsException` | `401 Unauthorized` |
+| `AuthenticationException` | `401 Unauthorized` |
+| `IllegalArgumentException` | `400 Bad Request` |
+| `Exception` (catch-all) | `500 Internal Server Error` |
+
+All error responses follow this structure:
+```json
+{
+  "timestamp": "2024-01-01T00:00:00",
+  "status": 401,
+  "error": "Unauthorized",
+  "message": "Invalid email or password"
+}
+```
+
+---
 
 ## Development
-During development it is recommended to use the profile `local`. In IntelliJ `-Dspring.profiles.active=local` can be
-added in the VM options of the Run Configuration after enabling this property in "Modify options". Create your own
-`application-local.yml` file to override settings for development.
 
-Lombok must be supported by your IDE. For IntelliJ install the Lombok plugin and enable annotation processing -
-[learn more](https://bootify.io/next-steps/spring-boot-with-lombok.html).
+Use the `local` Spring profile during development. In IntelliJ, add `-Dspring.profiles.active=local` to VM options in the Run Configuration. Create `src/main/resources/application-local.yml` to override settings locally.
 
-After starting the application it is accessible under `localhost:8080`.
+---
 
 ## Build
 
-The application can be built using the following command:
-
-```
+```bash
 mvn clean package
 ```
 
-Start your application with the following command - here with the profile `production`:
+Run with a specific profile:
 
-```
+```bash
 java -Dspring.profiles.active=production -jar ./target/java-spring-boot-0.0.1-SNAPSHOT.jar
 ```
 
-If required, a Docker image can be created with the Spring Boot plugin. Add `SPRING_PROFILES_ACTIVE=production` as
-environment variable when running the container.
+Build a Docker image:
 
+```bash
+mvn spring-boot:build-image -Dspring-boot.build-image.imageName=com.abdude/java-spring-boot
 ```
-mvn spring-boot:build-image -Dspring-boot.build-image.imageName=io.bootify/java-spring-boot
-```
+
+Set `SPRING_PROFILES_ACTIVE=production` as an environment variable when running the container.
+
+---
+
+## Testing
+
+Tests use JUnit 5 with Mockito (`@ExtendWith(MockitoExtension.class)`). Controllers are unit tested in isolation with mocked service dependencies.
+
+Test files mirror the source package structure under `src/test/java/`.
+
+---
 
 ## License
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License. See the `LICENSE` file for details.
 
-## Keywords and SEO Tags
-- Java Spring Boot 3.3.5 boilerplate
-- JWT authentication with Spring Boot
-- Java Spring Boot 3 JWT boilerplate
-- Java AI image classification
-- Spring Boot PostgreSQL integration
-- Java AI and JWT boilerplate project
-- Secure Java backend with JWT
-- Java 21 Spring Boot 3 JWT boilerplate
+---
 
-## Support the Dev:
-- BTC: bc1qpftdtjggrq8dpa6x6x7dnqvgv7ttc2x2m8rgvy
-- ETH / POL / BNB: 0xdCC9f5281B8bb40B11A792C280aA2cdd434C34AF
+## Support the Dev
+- BTC: `bc1qpftdtjggrq8dpa6x6x7dnqvgv7ttc2x2m8rgvy`
+- ETH / POL / BNB: `0xdCC9f5281B8bb40B11A792C280aA2cdd434C34AF`
